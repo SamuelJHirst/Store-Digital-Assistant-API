@@ -1,7 +1,7 @@
 {
-  "name": "store-digital-colleague-api",
-  "version": "2.0.0",
-  "description": "An API to provide information about products in a store.",
+  "name": "store-digital-assistant-api",
+  "version": "0.1.0",
+  "description": "The API of the Store Digital Assistant (SDA) project.",
   "main": "app.js",
   "scripts": {
     "watch-ts": "tsc -w",
@@ -14,11 +14,11 @@
     "cypress": "node_modules/.bin/cypress open"
   },
   "apidoc": {
-    "name": "Store Digital Colleague API",
-    "title": "Store Digital Colleague API",
+    "name": "Store Digital Assistant API",
+    "title": "Store Digital Assistant API",
     "url": "https://example.com/api"
   },
-  "author": "Sam Hirst",
+  "author": "Sam Hirst (hirst.me) <SamuelJHirst@outlook.com>",
   "license": "ISC",
   "dependencies": {
     "@types/bcrypt": "^3.0.0",

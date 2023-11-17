@@ -1,11 +1,11 @@
 import { Document, Schema, model } from 'mongoose';
-import { Site } from './Site';
-import { Assignment } from './Assignment';
-import { Collection, ICollectionProduct } from './Collection';
-import { Delivery, IDeliveryProduct } from './Delivery';
-import { Module, IModuleProduct } from './Module';
-import { ProductQuantity } from './ProductQuantity';
-import { Review } from './Review';
+import { Assignment, IAssignment } from './Assignment';
+import { Collection, ICollection, ICollectionProduct } from './Collection';
+import { Delivery, IDelivery, IDeliveryProduct } from './Delivery';
+import { Module, IModuleProduct, IModule } from './Module';
+import { IProductQuantity, ProductQuantity } from './ProductQuantity';
+import { IReview, Review } from './Review';
+import { ISite, Site } from './Site';
 
 export interface IProductInfo {
 	name: string;
@@ -36,7 +36,7 @@ const productSchema = new Schema({
 }, { versionKey: false });
 
 productSchema.post('save', (doc) => {
-	Site.find({}, async (err, sites) => {
+	Site.find({}, async (err: Error, sites: ISite[]) => {
 		sites.forEach(async site => {
 			const newProductQuantity = new ProductQuantity({
 				product: doc._id,
@@ -48,13 +48,13 @@ productSchema.post('save', (doc) => {
 	});
 });
 
-productSchema.post('remove', (doc) => {
-	Assignment.find({ product: doc._id }, async (err, assignments) => {
+productSchema.post('deleteOne', (doc) => {
+	Assignment.find({ product: doc._id }, async (err: Error, assignments: IAssignment[]) => {
 		assignments.forEach(async assignment => {
-			assignment.remove();
+			assignment.deleteOne();
 		});
 	});
-	Collection.find({ 'products.product': doc._id }, async (err, collections) => {
+	Collection.find({ 'products.product': doc._id }, async (err: Error, collections: ICollection[]) => {
 		collections.forEach(async collection => {
 			if (collection.products) {
 				collection.products = collection.products.filter((x: ICollectionProduct) => x.product.toString() !== doc._id.toString());
@@ -62,7 +62,7 @@ productSchema.post('remove', (doc) => {
 			}
 		});
 	});
-	Delivery.find({ 'products.product': doc._id }, async (err, deliveries) => {
+	Delivery.find({ 'products.product': doc._id }, async (err: Error, deliveries: IDelivery[]) => {
 		deliveries.forEach(async delivery => {
 			if (delivery.products) {
 				delivery.products = delivery.products.filter((x: IDeliveryProduct) => x.product.toString() !== doc._id.toString());
@@ -70,7 +70,7 @@ productSchema.post('remove', (doc) => {
 			}
 		});
 	});
-	Module.find({ 'products.product': doc._id }, async (err, modules) => {
+	Module.find({ 'products.product': doc._id }, async (err: Error, modules: IModule[]) => {
 		modules.forEach(async module => {
 			if (module.products) {
 				module.products = module.products.filter((x: IModuleProduct) => x.product.toString() !== doc._id.toString());
@@ -78,14 +78,14 @@ productSchema.post('remove', (doc) => {
 			}
 		});
 	});
-	ProductQuantity.find({ product: doc._id }, async (err, quantities) => {
+	ProductQuantity.find({ product: doc._id }, async (err: Error, quantities: IProductQuantity[]) => {
 		quantities.forEach(async quantity => {
-			quantity.remove();
+			quantity.deleteOne();
 		});
 	});
-	Review.find({ product: doc._id }, async (err, reviews) => {
+	Review.find({ product: doc._id }, async (err: Error, reviews: IReview[]) => {
 		reviews.forEach(async review => {
-			review.remove();
+			review.deleteOne();
 		});
 	});
 });

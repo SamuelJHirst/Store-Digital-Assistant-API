@@ -28,18 +28,16 @@ interface UserResponse {
 export const addUser = async (req: Request, res: Response): Promise<void> => {
 	try {
 		req.body.site = res.locals.site._id;
-		hash(req.body.password, 10, (error: Error, hashedPassword: string) => {
-			req.body.password = hashedPassword;
-			const newUser = new User(req.body);
-			newUser.populate('site').execPopulate();
-			newUser.save().then((doc: UserResponse) => {
-				doc.password = undefined;
-				res.status(201).send(doc);
-			}, (error: Error & { name: string, code: number }) => {
-				if (error.code === 11000) res.sendStatus(409);
-				else if (error.name === 'ValidationError') res.sendStatus(400);
-				else send500(res, error);
-			});
+		req.body.password = await hash(req.body.password, 10);
+		const newUser = new User(req.body);
+		newUser.populate('site');
+		newUser.save().then((doc: UserResponse) => {
+			doc.password = undefined;
+			res.status(201).send(doc);
+		}, (error: Error & { name: string, code: number }) => {
+			if (error.code === 11000) res.sendStatus(409);
+			else if (error.name === 'ValidationError') res.sendStatus(400);
+			else send500(res, error);
 		});
 	} catch (error) {
 		send500(res, error);
@@ -73,7 +71,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
 		else User.findOneAndUpdate({ username: req.params.username }, { '$set': update }, { runValidators: true, new: true }).then(async (doc: IUser | null) => {
 			if (!doc) res.sendStatus(400);
 			else {
-				await doc.populate('site').execPopulate();
+				await doc.populate('site');
 				const resp: UserResponse = doc as UserResponse;
 				resp.password = undefined;
 				res.send(resp);
@@ -90,7 +88,7 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
 	try {
 		const doc = await User.findOne({ username: req.params.username });
 		if (doc) {
-			await doc.remove();
+			await doc.deleteOne();
 			res.sendStatus(204);
 		}
 		else res.sendStatus(404);
@@ -101,18 +99,17 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
 
 export const authenticate = async (req: Request, res: Response): Promise<void> => {
 	try {
-		User.findOne({ username: req.body.username }).populate('site').then((doc: IUser | null) => {
+		User.findOne({ username: req.body.username }).populate('site').then(async (doc: IUser | null) => {
 			if (!doc) res.sendStatus(401);
 			else {
-				compare(req.body.password, doc.password, (error: Error, valid: boolean) => {
-					if (!valid) res.sendStatus(401);
-					else {
-						const payload = doc.toObject();
-						payload.password = '';
-						const token = sign(payload, config.jwtSecret);
-						res.send({ token });
-					}
-				});
+				const valid = await compare(req.body.password, doc.password);
+				if (!valid) res.sendStatus(401);
+				else {
+					const payload = doc.toObject();
+					payload.password = '';
+					const token = sign(payload, config.jwtSecret);
+					res.send({ token });
+				}
 			}
 		}, (error: Error) => {
 			send500(res, error);

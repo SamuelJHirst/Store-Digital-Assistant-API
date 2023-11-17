@@ -1,6 +1,6 @@
 import { Document, Schema, model } from 'mongoose';
+import { AuditLog, IAuditLog } from './AuditLog';
 import { ISite } from './Site';
-import { AuditLog } from './AuditLog';
 
 export interface IUser extends Document {
 	firstName: string;
@@ -20,10 +20,10 @@ const userSchema = new Schema({
 	site: { type: Schema.Types.ObjectId, required: true, ref: 'Site' }
 }, { versionKey: false });
 
-userSchema.post('remove', (doc) => {
-	AuditLog.find({ user: doc._id }, async (err, logs) => {
+userSchema.post('deleteOne', (doc) => {
+	AuditLog.find({ user: doc._id }, async (err: Error, logs: IAuditLog[]) => {
 		logs.forEach(async log => {
-			log.remove();
+			log.deleteOne();
 		});
 	});
 });

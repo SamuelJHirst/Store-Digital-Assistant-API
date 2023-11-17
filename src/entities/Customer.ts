@@ -1,8 +1,8 @@
 import { Document, Schema, model } from 'mongoose';
 import { config } from '../helpers/config';
+import { Collection, ICollection } from './Collection';
 import { Counter, ICounter } from './Counter';
-import { Collection } from './Collection';
-import { Review } from './Review';
+import { IReview, Review } from './Review';
 
 export interface ICustomer extends Document {
 	customerNumber: ICounter['seq'];
@@ -42,15 +42,15 @@ customerSchema.pre('validate', async function() {
 	}
 });
 
-customerSchema.post('remove', (doc) => {
-	Collection.find({ customer: doc._id }, async (err, collections) => {
+customerSchema.post('deleteOne', (doc) => {
+	Collection.find({ customer: doc._id }, async (err: Error, collections: ICollection[]) => {
 		collections.forEach(async collection => {
-			collection.remove();
+			collection.deleteOne();
 		});
 	});
-	Review.find({ customer: doc._id }, async (err, reviews) => {
+	Review.find({ customer: doc._id }, async (err: Error, reviews: IReview[]) => {
 		reviews.forEach(async review => {
-			review.remove();
+			review.deleteOne();
 		});
 	});
 });

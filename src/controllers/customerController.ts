@@ -40,8 +40,8 @@ export const addCustomer = async (req: Request, res: Response): Promise<void> =>
 		if (!req.body.email || !validator.isEmail(req.body.email)) res.sendStatus(400);
 		else if (!req.body.mobilePhone || !validator.isMobilePhone(req.body.mobilePhone, 'en-GB')) res.sendStatus(400);
 		else if (!req.body.addressPostcode || !validator.isPostalCode(req.body.addressPostcode, 'GB')) res.sendStatus(400);
-		else hash(req.body.password, 10, (error: Error, hashedPassword: string) => {
-			req.body.password = hashedPassword;
+		else {
+			req.body.password = await hash(req.body.password, 10);
 			const newCustomer = new Customer(req.body);
 			newCustomer.save().then((doc: CustomerResponse) => {
 				doc.password = undefined;
@@ -52,7 +52,7 @@ export const addCustomer = async (req: Request, res: Response): Promise<void> =>
 				else if (error.name === 'ValidationError') res.sendStatus(400);
 				else send500(res, error);
 			});
-		});
+		}
 	} catch (error) {
 		send500(res, error);
 	}
@@ -107,7 +107,7 @@ export const deleteCustomer = async (req: Request & { params: { customer: number
 	try {
 		Customer.findOne({ customerNumber: req.params.customer }).then(async (doc: ICustomer | null) => {
 			if (doc) {
-				await doc.remove();
+				await doc.deleteOne();
 				res.sendStatus(204);
 			}
 			else res.sendStatus(404);

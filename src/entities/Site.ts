@@ -1,12 +1,12 @@
 import { Document, Schema, model } from 'mongoose';
-import { Product } from './Product';
-import { Aisle } from './Location';
-import { AuditLog } from './AuditLog';
-import { Collection } from './Collection';
-import { Delivery } from './Delivery';
-import { ModuleInstance } from './ModuleInstance';
-import { ProductQuantity } from './ProductQuantity';
-import { User } from './User';
+import { IProduct, Product } from './Product';
+import { AuditLog, IAuditLog } from './AuditLog';
+import { Collection, ICollection } from './Collection';
+import { Delivery, IDelivery } from './Delivery';
+import { Aisle, IAisle } from './Location';
+import { IModuleInstance, ModuleInstance } from './ModuleInstance';
+import { IProductQuantity, ProductQuantity } from './ProductQuantity';
+import { IUser, User } from './User';
 
 export interface ISite extends Document {
 	name: string;
@@ -20,7 +20,7 @@ const siteSchema = new Schema({
 }, { versionKey: false });
 
 siteSchema.post('save', (doc) => {
-	Product.find({}, async (err, products) => {
+	Product.find({}, async (err: Error, products: IProduct[]) => {
 		products.forEach(async product => {
 			const newProductQuantity = new ProductQuantity({
 				product: product._id,
@@ -32,40 +32,40 @@ siteSchema.post('save', (doc) => {
 	});
 });
 
-siteSchema.post('remove', (doc) => {
-	Aisle.find({ site: doc._id }, async (err, aisles) => {
+siteSchema.post('deleteOne', (doc) => {
+	Aisle.find({ site: doc._id }, async (err: Error, aisles: IAisle[]) => {
 		aisles.forEach(async aisle => {
-			aisle.remove();
+			aisle.deleteOne();
 		});
 	});
-	AuditLog.find({ site: doc._id }, async (err, logs) => {
+	AuditLog.find({ site: doc._id }, async (err: Error, logs: IAuditLog[]) => {
 		logs.forEach(async log => {
-			log.remove();
+			log.deleteOne();
 		});
 	});
-	Collection.find({ site: doc._id }, async (err, collections) => {
+	Collection.find({ site: doc._id }, async (err: Error, collections: ICollection[]) => {
 		collections.forEach(async collection => {
-			collection.remove();
+			collection.deleteOne();
 		});
 	});
-	Delivery.find({ '$or': [ { inbound: doc._id }, { outbound: doc._id } ] }, async (err, deliveries) => {
+	Delivery.find({ '$or': [ { inbound: doc._id }, { outbound: doc._id } ] }, async (err: Error, deliveries: IDelivery[]) => {
 		deliveries.forEach(async delivery => {
-			delivery.remove();
+			delivery.deleteOne();
 		});
 	});
-	ModuleInstance.find({ site: doc._id }, async (err, instances) => {
+	ModuleInstance.find({ site: doc._id }, async (err: Error, instances: IModuleInstance[]) => {
 		instances.forEach(async instance => {
-			instance.remove();
+			instance.deleteOne();
 		});
 	});
-	ProductQuantity.find({ site: doc._id }, async (err, quantities) => {
+	ProductQuantity.find({ site: doc._id }, async (err: Error, quantities: IProductQuantity[]) => {
 		quantities.forEach(async quantity => {
-			quantity.remove();
+			quantity.deleteOne();
 		});
 	});
-	User.find({ site: doc._id }, async (err, users) => {
+	User.find({ site: doc._id }, async (err: Error, users: IUser[]) => {
 		users.forEach(async user => {
-			user.remove();
+			user.deleteOne();
 		});
 	});
 });

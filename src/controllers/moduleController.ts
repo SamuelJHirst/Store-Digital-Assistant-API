@@ -59,7 +59,7 @@ export const updateModule = async (req: Request, res: Response): Promise<void> =
 		else Module.findOneAndUpdate({ discriminator: req.params.module }, { '$set': update }, { runValidators: true, new: true }).then(async (doc: IModule | null) => {
 			if (!doc) res.sendStatus(404);
 			else {
-				await doc.populate({ path: 'products.product', model: 'Product' }).execPopulate();
+				await doc.populate({ path: 'products.product', model: 'Product' });
 				res.send(doc);
 			}
 		}, (error: Error & { name: string }) => {
@@ -75,7 +75,7 @@ export const deleteModule = async (req: Request, res: Response): Promise<void> =
 	try {
 		const doc = await Module.findOne({ discriminator: req.params.module });
 		if (doc) {
-			await doc.remove();
+			await doc.deleteOne();
 			res.sendStatus(204);
 		}
 		else response.sendStatus(404);
@@ -94,7 +94,7 @@ export const addModuleProduct = async (req: Request, res: Response): Promise<voi
 			Module.findOneAndUpdate({ discriminator: req.params.module }, { '$push': { products: { '$each': [newModuleProduct], '$position': req.body.sequence } } }, { new: true }).then(async (doc: IModule | null) => {
 				if (!doc) res.sendStatus(404);
 				else {
-					await doc.populate({ path: 'products.product', model: 'Product' }).execPopulate();
+					await doc.populate({ path: 'products.product', model: 'Product' });
 					res.send(doc);
 				}
 			}, (error: Error) => {
@@ -109,13 +109,13 @@ export const addModuleProduct = async (req: Request, res: Response): Promise<voi
 export const deleteModuleProduct = async (req: Request, res: Response): Promise<void> => {
 	try {
 		const key = `products.${parseInt(req.params.sequence) - 1}`;
-		Module.updateOne({ discriminator: req.params.module }, { '$unset': { [key]: 1 } }).then((docs: { n: number, nModified: number }) => {
-			if (docs.n === 0) res.sendStatus(404);
-			else if (docs.nModified === 0) res.sendStatus(422);
+		Module.updateOne({ discriminator: req.params.module }, { '$unset': { [key]: 1 } }).then((docs) => {
+			if (docs.matchedCount === 0) res.sendStatus(404);
+			else if (docs.modifiedCount === 0) res.sendStatus(422);
 			else Module.findOneAndUpdate({ discriminator: req.params.module }, { '$pull': { products: null } }, { new: true }).then(async (doc: IModule | null) => {
 				if (!doc) res.sendStatus(404);
 				else {
-					await doc.populate({ path: 'products.product', model: 'Product' }).execPopulate();
+					await doc.populate({ path: 'products.product', model: 'Product' });
 					res.send(doc);
 				}
 			}, (error: Error) => {

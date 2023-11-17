@@ -11,8 +11,8 @@ export const addReview = async (req: Request, res: Response): Promise<void> => {
 			review: req.body.review,
 			timestamp: Date.now()
 		});
-		newReview.populate('product').execPopulate();
-		newReview.populate({ path: 'customer', select: '_id title firstName lastName customerNumber' }).execPopulate();
+		newReview.populate('product');
+		newReview.populate({ path: 'customer', select: '_id title firstName lastName customerNumber' });
 		newReview.save().then((doc: IReview) => {
 			res.status(201).send(doc);
 		}, (error: Error & { name: string, code: number }) => {

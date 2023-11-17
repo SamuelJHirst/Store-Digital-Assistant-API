@@ -83,7 +83,7 @@ export const deleteProduct = async (req: Request, res: Response): Promise<void> 
 	try {
 		const doc = await Product.findOne({ ean: req.params.product });
 		if (doc) {
-			await doc.remove();
+			await doc.deleteOne();
 			res.sendStatus(204);
 		}
 		else res.sendStatus(404);

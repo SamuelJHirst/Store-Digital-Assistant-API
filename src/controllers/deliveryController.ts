@@ -35,7 +35,7 @@ export const addDelivery = async (req: Request, res: Response): Promise<void> =>
 				}
 				if (newDelivery.products.length === 0) res.sendStatus(400);
 				else newDelivery.save().then(async (doc: IDelivery) => {
-					await doc.populate('inbound outbound products.product').execPopulate();
+					await doc.populate('inbound outbound products.product');
 					res.status(201).send(doc);
 				}, async (error: Error & { name: string, code: number }) => {
 					await Counter.findByIdAndUpdate(config.deliveryCounter, { $inc: { seq: -1 } });
@@ -111,7 +111,7 @@ export const updateDelivery = async (req: Request & { params: { delivery: number
 		Delivery.findOneAndUpdate({ deliveryNumber: req.params.delivery }, { '$set': { status: req.body.status } }, { new: true }).then(async (doc: IDelivery | null) => {
 			if (!doc) res.sendStatus(404);
 			else {
-				await doc.populate('inbound outbound products.product').execPopulate();
+				await doc.populate('inbound outbound products.product');
 				res.send(doc);
 			}
 		}, (error: Error & { name: string }) => {
@@ -127,7 +127,7 @@ export const deleteDelivery = async (req: Request & { params: { delivery: number
 	try {
 		Delivery.findOne({ deliveryNumber: req.params.delivery }).then(async (doc: IDelivery | null) => {
 			if (doc) {
-				await doc.remove();
+				await doc.deleteOne();
 				res.sendStatus(204);
 			}
 			else res.sendStatus(404);

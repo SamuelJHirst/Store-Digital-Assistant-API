@@ -1,7 +1,7 @@
 import { Document, Schema, model } from 'mongoose';
+import { Assignment, IAssignment } from './Assignment';
+import { IModuleInstance, ModuleInstance } from './ModuleInstance';
 import { ISite } from './Site';
-import { Assignment } from './Assignment';
-import { ModuleInstance } from './ModuleInstance';
 
 export interface IAisle extends	Document {
 	name: string;
@@ -15,10 +15,10 @@ const aisleSchema = new Schema({
 	site: { type: Schema.Types.ObjectId, required: true, ref: 'Site' }
 }, { versionKey: false });
 
-aisleSchema.post('remove', (doc) => {
-	Bay.find({ aisle: doc._id }, async (err, bays) => {
+aisleSchema.post('deleteOne', (doc) => {
+	Bay.find({ aisle: doc._id }, async (err: Error, bays: IBay[]) => {
 		bays.forEach(async bay => {
-			bay.remove();
+			bay.deleteOne();
 		});
 	});
 });
@@ -49,15 +49,15 @@ const baySchema = new Schema({
 	allowsStockroom: { type: Boolean, required: true }
 }, { versionKey: false });
 
-baySchema.post('remove', (doc) => {
-	Assignment.find({ bay: doc._id }, async (err, assignments) => {
+baySchema.post('deleteOne', (doc) => {
+	Assignment.find({ bay: doc._id }, async (err: Error, assignments: IAssignment[]) => {
 		assignments.forEach(async assignment => {
-			assignment.remove();
+			assignment.deleteOne();
 		});
 	});
-	ModuleInstance.find({ bay: doc._id }, async (err, instances) => {
+	ModuleInstance.find({ bay: doc._id }, async (err: Error, instances: IModuleInstance[]) => {
 		instances.forEach(async instance => {
-			instance.remove();
+			instance.deleteOne();
 		});
 	});
 });

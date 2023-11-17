@@ -71,7 +71,7 @@ export const deleteSite = async (req: Request, res: Response): Promise<void> => 
 	try {
 		Site.findOne({ code: req.params.site }).then(async (doc: ISite | null) => {
 			if (doc) {
-				await doc.remove();
+				await doc.deleteOne();
 				res.sendStatus(204);
 			}
 			else res.sendStatus(404);

@@ -19,8 +19,8 @@ export const addLog = async (req: Request, res: Response): Promise<void> => {
 				timestamp: Date.now()
 			});
 			newLog.save().then(async (doc: IAuditLog) => {
-				await newLog.populate({ path: 'user', select: '-password' }).execPopulate();
-				await newLog.populate('site user.site').execPopulate();
+				await newLog.populate({ path: 'user', select: '-password' });
+				await newLog.populate('site user.site');
 				res.status(201).send(doc);
 			}, (error: Error & { name: string, code: number }) => {
 				if (error.name === 'ValidationError') res.sendStatus(400);

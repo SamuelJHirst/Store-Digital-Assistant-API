@@ -29,7 +29,7 @@ export const addAisle = async (req: Request, res: Response): Promise<void> => {
 			if (error.response.status === 404 || error.response.status === 400) {
 				const newAisle = new Aisle({ name: req.body.name, aisle: req.body.aisle, site: res.locals.site._id });
 				newAisle.save().then(async (doc: IAisle) => {
-					await newAisle.populate('site').execPopulate();
+					await newAisle.populate('site');
 					res.status(201).send(doc);
 				}, (error: Error & { name: string }) => {
 					if (error.name === 'ValidationError' || error.name === 'CastError') res.sendStatus(400);
@@ -79,7 +79,7 @@ export const updateAisle = async (req: Request & { params: { aisle: number } }, 
 		else Aisle.findOneAndUpdate({ site: res.locals.site._id, aisle: req.params.aisle }, { '$set': update }, { new: true, runValidators: true }).then(async (doc: IAisle | null) => {
 			if (!doc) res.sendStatus(404);
 			else { 
-				await doc.populate('site').execPopulate();
+				await doc.populate('site');
 				res.send(doc);
 			}
 		}, (error: Error & { name: string }) => {
@@ -96,7 +96,7 @@ export const deleteAisle = async (req: Request & { params: { aisle: number } }, 
 	try {
 		Aisle.findOne({ site: res.locals.site._id, aisle: req.params.aisle }).then(async (doc: IAisle | null) => {
 			if (doc) {
-				await doc.remove();
+				await doc.deleteOne();
 				res.sendStatus(204);
 			}
 			else res.sendStatus(404);
@@ -119,8 +119,8 @@ export const addBay = async (req: Request, res: Response): Promise<void> => {
 				req.body.aisle = res.locals.aisle._id;
 				const newBay = new Bay(req.body);
 				newBay.save().then(async (doc: IBay) => {
-					await doc.populate('aisle').execPopulate();
-					await doc.populate('aisle.site').execPopulate();
+					await doc.populate('aisle');
+					await doc.populate('aisle.site');
 					res.status(201).send(doc);
 				}, (error: Error & { name: string }) => {
 					if (error.name === 'ValidationError' || error.name === 'CastError') res.sendStatus(400);
@@ -176,8 +176,8 @@ export const updateBay = async (req: Request & { params: { bay: number } }, res:
 		else Bay.findOneAndUpdate({ aisle: res.locals.aisle._id, bay: req.params.bay }, { '$set': update }, { new: true, runValidators: true }).then(async (doc: IBay | null) => {
 			if (!doc) res.sendStatus(404);
 			else {
-				await doc.populate('aisle').execPopulate();
-				await doc.populate('aisle.site').execPopulate();
+				await doc.populate('aisle');
+				await doc.populate('aisle.site');
 				res.send(doc);
 			}
 		}, (error: Error & { name: string }) => {
@@ -193,7 +193,7 @@ export const deleteBay = async (req: Request & { params: { bay: number } }, res:
 	try {
 		Bay.findOne({ aisle: res.locals.aisle._id, bay: req.params.bay }).then(async (doc: IBay | null) => {
 			if (doc) {
-				await doc.remove();
+				await doc.deleteOne();
 				res.sendStatus(204);
 			}
 			else res.sendStatus(404);

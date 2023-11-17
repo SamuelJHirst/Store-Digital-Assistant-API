@@ -27,8 +27,8 @@ export const addCollection = async (req: Request, res: Response): Promise<void> 
 		}
 		if (newCollection.products.length === 0) res.sendStatus(400);
 		else newCollection.save().then(async (doc: ICollection) => {
-			await doc.populate('site products.product').execPopulate();
-			await doc.populate({ path: 'customer', select: '_id title firstName lastName customerNumber'}).execPopulate();
+			await doc.populate('site products.product');
+			await doc.populate({ path: 'customer', select: '_id title firstName lastName customerNumber'});
 			res.status(201).send(doc);
 		}, async (error: Error & { name: string, code: number }) => {
 			await Counter.findByIdAndUpdate(config.collectionCounter, { $inc: { seq: -1 } });
@@ -105,8 +105,8 @@ export const updateCollection = async (req: Request & { params: { collection: nu
 				}
 				if (['Not Started', 'In Progress', 'Awaiting Collection', 'Collected'].indexOf(req.body.status) > -1) doc.status = req.body.status;
 				doc.save();
-				await doc.populate('site products.product').execPopulate();
-				await doc.populate({ path: 'customer', select: '_id title firstName lastName customerNumber'}).execPopulate();
+				await doc.populate('site products.product');
+				await doc.populate({ path: 'customer', select: '_id title firstName lastName customerNumber'});
 				res.send(doc);
 			}
 		});
@@ -119,7 +119,7 @@ export const deleteCollection = async (req: Request & { params: { collection: nu
 	try {
 		Collection.findOne({ collectionNumber: req.params.collection }).then(async (doc: ICollection | null) => {
 			if (doc) {
-				await doc.remove();
+				await doc.deleteOne();
 				res.sendStatus(204);
 			}
 			else res.sendStatus(404);

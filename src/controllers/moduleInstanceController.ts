@@ -10,8 +10,8 @@ export const addModuleToSite = async (req: Request, res: Response): Promise<void
 		ModuleInstance.findOne({ module: res.locals.module._id, site: res.locals.site._id }).then((doc: IModuleInstance | null) => {
 			if (doc) res.sendStatus(409);
 			else newModuleInstance.save().then(async (doc: IModuleInstance) => {
-				await doc.populate({ path: 'site' }).execPopulate();
-				await doc.populate({ path: 'module', populate: { path: 'products.product', model: 'Product' }}).execPopulate();
+				await doc.populate({ path: 'site' });
+				await doc.populate({ path: 'module', populate: { path: 'products.product', model: 'Product' }});
 				res.status(201).send(doc);
 			}, (error: Error & { name: string }) => {
 				if (error.name === 'ValidationError') res.sendStatus(400);
@@ -62,7 +62,7 @@ export const deleteModuleFromSite = async (req: Request, res: Response): Promise
 	try {
 		const doc = await ModuleInstance.findOne({ module: res.locals.module._id, site: res.locals.site._id });
 		if (doc) {
-			await doc.remove();
+			await doc.deleteOne();
 			res.sendStatus(204);
 		}
 		else res.sendStatus(404);
@@ -79,9 +79,9 @@ export const addModuleToBay = async (req: Request, res: Response): Promise<void>
 			else ModuleInstance.findOneAndUpdate({ site: res.locals.bay.aisle.site._id, module: res.locals.module._id }, { '$set': { bay: res.locals.bay._id } }, { new: true }).then(async (doc: IModuleInstance | null) => {
 				if (!doc) res.sendStatus(404);
 				else {
-					await doc.populate({ path: 'site' }).execPopulate();
-					await doc.populate({ path: 'module', populate: { path: 'products.product', model: 'Product' }}).execPopulate();
-					await doc.populate({ path: 'bay', populate: { path: 'aisle', populate: { path: 'site' } } }).execPopulate();
+					await doc.populate({ path: 'site' });
+					await doc.populate({ path: 'module', populate: { path: 'products.product', model: 'Product' }});
+					await doc.populate({ path: 'bay', populate: { path: 'aisle', populate: { path: 'site' } } });
 					res.send(doc);
 				}
 			}, (error: Error) => {
@@ -111,8 +111,8 @@ export const getModulesInBay = async (req: Request, res: Response): Promise<void
 
 export const deleteModuleFromBay = async (req: Request, res: Response): Promise<void> => {
 	try {
-		ModuleInstance.updateOne({ site: res.locals.site._id, module: res.locals.module._id }, { '$set': { bay: null } }).then((docs: { n: number, nModified: number }) => {
-			if (docs.n === 0 || docs.nModified === 0) res.sendStatus(422);
+		ModuleInstance.updateOne({ site: res.locals.site._id, module: res.locals.module._id }, { '$set': { bay: null } }).then((docs) => {
+			if (docs.matchedCount === 0 || docs.modifiedCount === 0) res.sendStatus(422);
 			else res.sendStatus(204);
 		}, (error: Error) => {
 			send500(res, error);

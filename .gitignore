@@ -1,0 +1,11 @@
+# Ignore Build Files
+dist
+
+# Ignore Dependencies
+node_modules
+
+# Ignore Config
+.env
+
+# Ignore Documentation
+docs.yml

@@ -1,0 +1,13 @@
+{
+    "name": "My Product",
+    "price": 4.99,
+    "description": "A Test Product",
+    "status": "Live",
+    "ageRestricted": false,
+    "info": [
+      {
+        "name": "Weight",
+        "value": "1kg"
+      }
+    ]
+  }
